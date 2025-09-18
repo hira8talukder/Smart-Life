@@ -32,6 +32,7 @@ CREATE TABLE `users` (
   `full_name` varchar(255) NOT NULL,
   `email` varchar(255) NOT NULL,
   `password` varchar(255) NOT NULL,
+  `address` TEXT NULL,
   `token` varchar(255) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -164,6 +165,31 @@ ALTER TABLE `order_details`
 --
 ALTER TABLE `order_details`
   ADD CONSTRAINT `order_details_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`);
+
+--
+-- Table structure for table `contact_messages`
+--
+
+CREATE TABLE `contact_messages` (
+  `id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `message` text NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Indexes for table `contact_messages`
+--
+ALTER TABLE `contact_messages`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- AUTO_INCREMENT for table `contact_messages`
+--
+ALTER TABLE `contact_messages`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

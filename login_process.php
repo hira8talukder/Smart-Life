@@ -47,10 +47,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             header("Location: home.php");
             exit();
         } else {
-            echo "Invalid password";
+            header("Location: login.php?error=invalid");
+            exit();
         }
     } else {
-        echo "No user found with this email";
+        header("Location: login.php?error=invalid");
+        exit();
     }
 }
 ?>

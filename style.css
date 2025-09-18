@@ -93,3 +93,44 @@ body {
 .animated-image {
     animation: float 3s ease-in-out infinite;
 }
+
+/* Dark Mode */
+body.dark-mode {
+    background-color: #121212;
+    color: #ffffff;
+}
+
+.dark-mode .navbar {
+    background-color: #1f1f1f !important;
+}
+
+.dark-mode .navbar-brand,
+.dark-mode .nav-link {
+    color: #ffffff !important;
+}
+
+.dark-mode .card {
+    background-color: #1f1f1f;
+    color: #ffffff;
+}
+
+.dark-mode .feature-card {
+    background-color: #1f1f1f;
+    color: #ffffff;
+}
+
+.dark-mode .form-control {
+    background-color: #2d2d2d;
+    color: #ffffff;
+    border-color: #444444;
+}
+
+.dark-mode .form-control:focus {
+    background-color: #2d2d2d;
+    color: #ffffff;
+    border-color: #ff9500;
+}
+
+.dark-mode .sidebar {
+    background-color: #1f1f1f !important;
+}

@@ -35,6 +35,12 @@ include 'header.php';
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="account_settings.php?action=main">
+                            <i class="fas fa-cog"></i>
+                            Account Settings
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="logout.php">
                             <i class="fas fa-sign-out-alt"></i>
                             Logout
@@ -73,7 +79,7 @@ include 'header.php';
                     <div class="card h-100 feature-card">
                         <div class="card-body text-center">
                             <i class="fas fa-bolt fa-3x text-primary mb-3"></i>
-                            <h5 class="card-title">Electrician</h5>
+                            <h5 class="card-title">Electrician">
                             <a href="electrician.php" class="btn btn-primary">Book Now</a>
                         </div>
                     </div>

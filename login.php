@@ -4,6 +4,11 @@
     <div class="card form-card">
         <div class="card-body">
             <h2 class="card-title text-center">Login</h2>
+            <?php
+            if (isset($_GET['error']) && $_GET['error'] == 'invalid') {
+                echo '<div class="alert alert-danger">Invalid email or password.</div>';
+            }
+            ?>
             <form action="login_process.php" method="POST">
                 <div class="mb-3">
                     <label for="email" class="form-label">Email address</label>
