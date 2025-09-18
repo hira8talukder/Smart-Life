@@ -4,6 +4,9 @@ include 'db.php';
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $full_name = $_POST['full_name'];
     $email = $_POST['email'];
+    $phone = $_POST['phone'];
+    $age = $_POST['age'];
+    $gender = $_POST['gender'];
     $password = $_POST['password'];
     $confirm_password = $_POST['confirm_password'];
 
@@ -30,9 +33,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
         // Insert new user
-        $insert_sql = "INSERT INTO users (full_name, email, password) VALUES (?, ?, ?)";
+        $insert_sql = "INSERT INTO users (full_name, email, phone, age, gender, password) VALUES (?, ?, ?, ?, ?, ?)";
         $insert_stmt = $conn->prepare($insert_sql);
-        $insert_stmt->bind_param("sss", $full_name, $email, $hashed_password);
+        $insert_stmt->bind_param("ssssis", $full_name, $email, $phone, $age, $gender, $hashed_password);
 
         if ($insert_stmt->execute()) {
             header("Location: login.php?registration=success");

@@ -21,12 +21,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($action == 'update_profile') {
         $full_name = $_POST['full_name'];
         $email = $_POST['email'];
+        $phone = $_POST['phone'];
+        $age = $_POST['age'];
+        $gender = $_POST['gender'];
         $address = $_POST['address'];
 
         // Update user data
-        $sql = "UPDATE users SET full_name = ?, email = ?, address = ? WHERE id = ?";
+        $sql = "UPDATE users SET full_name = ?, email = ?, phone = ?, age = ?, gender = ?, address = ? WHERE id = ?";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("sssi", $full_name, $email, $address, $user_id);
+        $stmt->bind_param("ssisssi", $full_name, $email, $phone, $age, $gender, $address, $user_id);
 
         if ($stmt->execute()) {
             header("Location: profile.php?status=success");
@@ -107,6 +110,22 @@ if ($action == 'edit_profile') {
             <div class="mb-3">
                 <label for="email" class="form-label">Email</label>
                 <input type="email" class="form-control" id="email" name="email" value="<?php echo htmlspecialchars($user['email']); ?>">
+            </div>
+            <div class="mb-3">
+                <label for="phone" class="form-label">Phone Number</label>
+                <input type="text" class="form-control" id="phone" name="phone" value="<?php echo htmlspecialchars($user['phone']); ?>">
+            </div>
+            <div class="mb-3">
+                <label for="age" class="form-label">Age</label>
+                <input type="number" class="form-control" id="age" name="age" value="<?php echo htmlspecialchars($user['age']); ?>">
+            </div>
+            <div class="mb-3">
+                <label for="gender" class="form-label">Gender</label>
+                <select class="form-select" id="gender" name="gender">
+                    <option value="Male" <?php if ($user['gender'] == 'Male') echo 'selected'; ?>>Male</option>
+                    <option value="Female" <?php if ($user['gender'] == 'Female') echo 'selected'; ?>>Female</option>
+                    <option value="Other" <?php if ($user['gender'] == 'Other') echo 'selected'; ?>>Other</option>
+                </select>
             </div>
             <div class="mb-3">
                 <label for="address" class="form-label">Address</label>

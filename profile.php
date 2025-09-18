@@ -42,6 +42,9 @@ include 'header.php';
         <div class="card-body">
             <h5 class="card-title">Name: <?php echo htmlspecialchars($user['full_name']); ?></h5>
             <p class="card-text">Email: <?php echo htmlspecialchars($user['email']); ?></p>
+            <p class="card-text">Phone: <?php echo htmlspecialchars($user['phone']); ?></p>
+            <p class="card-text">Age: <?php echo htmlspecialchars($user['age']); ?></p>
+            <p class="card-text">Gender: <?php echo htmlspecialchars($user['gender']); ?></p>
             <p class="card-text">Address: <?php echo htmlspecialchars($user['address']); ?></p>
             <a href="account_settings.php?action=edit_profile" class="btn btn-primary">Edit Profile</a>
         </div>
