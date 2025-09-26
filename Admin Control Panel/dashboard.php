@@ -185,7 +185,7 @@ if (!isset($_SESSION['admin_logged_in'])) {
 
             <!-- Dashboard Content Card -->
             <div class="content-card" style="background-color: var(--card-bg); border-radius: 1rem; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); padding: 2rem;">
-                <p style="color: var(--secondary-dark);">This is your admin dashboard. Use the navigation to manage your site's data.</p>
+                <p style="color: var(--secondary-dark);">This is Admin Dahboard</p>
             </div>
         </div>
     </div>
