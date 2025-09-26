@@ -153,7 +153,7 @@ $result = $conn->query($query);
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
             padding: 2rem;
         }
-
+        
         .message-box {
             text-align: center;
             font-size: 0.9rem;
@@ -161,121 +161,112 @@ $result = $conn->query($query);
             padding: 1rem;
             border-radius: 0.75rem;
             margin-bottom: 1.5rem;
-        }
-
-        .success {
-            background-color: #D1FAE5;
             color: #065F46;
+            background-color: #D1FAE5;
         }
 
-        .error {
-            background-color: #FEE2E2;
-            color: #B91C1C;
+        /* Responsive table styles */
+        .table-responsive {
+            overflow-x: auto;
         }
         
-        /* Table styles */
-        .user-table {
+        .data-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 1.5rem;
         }
 
-        .user-table th, .user-table td {
-            text-align: left;
+        .data-table th, .data-table td {
             padding: 1rem;
-            border-bottom: 1px solid #E5E7EB;
+            text-align: left;
+            border-bottom: 1px solid var(--link-hover-bg);
         }
 
-        .user-table th {
-            font-size: 0.8rem;
+        .data-table th {
             font-weight: 600;
-            text-transform: uppercase;
             color: var(--secondary-dark);
-            background-color: var(--background-light);
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }
+        
+        .data-table tr:hover {
+            background-color: var(--link-hover-bg);
         }
 
-        .user-table tr:hover {
-            background-color: #F8F9FA;
-        }
-
-        .user-table td a {
-            color: var(--primary-blue);
+        .data-table td a {
             text-decoration: none;
             font-weight: 500;
-            transition: color 0.2s;
+            transition: color 0.3s;
+        }
+        
+        /* Button styles */
+        .btn {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            margin: 0.25rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s, background-color 0.3s;
         }
 
-        .user-table td a:hover {
-            color: #085A8A;
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-view {
+            background-color: var(--primary-blue);
+            color: white;
         }
 
-        /* Responsive adjustments */
+        .btn-view:hover {
+            background-color: #085A8A;
+        }
+        
+        .btn-danger {
+            background-color: #EF4444;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #DC2626;
+        }
+
+        /* Mobile-first approach for tables */
         @media (max-width: 768px) {
-            .dashboard-container {
-                flex-direction: column;
+            .data-table thead {
+                display: none;
             }
 
-            .sidebar {
-                width: 100%;
-                padding: 1.5rem;
-                border-right: none;
-                border-bottom: 1px solid #E5E7EB;
-            }
-
-            .sidebar h2 {
-                text-align: center;
-            }
-
-            .nav-list {
-                flex-direction: row;
-                flex-wrap: wrap;
-                justify-content: center;
-                gap: 0.5rem;
-            }
-            
-            .nav-list a {
-                padding: 0.7rem 1rem;
-            }
-
-            .main-content {
-                padding: 1.5rem;
-            }
-
-            .header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 1rem;
-            }
-            
-            .user-table, .user-table tbody, .user-table tr, .user-table td {
+            .data-table, .data-table tbody, .data-table tr, .data-table td {
                 display: block;
                 width: 100%;
             }
 
-            .user-table thead {
-                display: none;
+            .data-table tr {
+                margin-bottom: 1.5rem;
+                border: 1px solid var(--border-color);
+                border-radius: 0.75rem;
+                overflow: hidden;
             }
 
-            .user-table tr {
-                border-bottom: 2px solid var(--background-light);
-                margin-bottom: 1rem;
-            }
-
-            .user-table td {
+            .data-table td {
                 text-align: right;
-                position: relative;
                 padding-left: 50%;
+                position: relative;
             }
 
-            .user-table td::before {
+            .data-table td::before {
                 content: attr(data-label);
                 position: absolute;
                 left: 1rem;
                 width: calc(50% - 2rem);
                 text-align: left;
                 font-weight: 600;
-                text-transform: uppercase;
                 color: var(--secondary-dark);
+                text-transform: uppercase;
+                font-size: 0.8rem;
             }
         }
     </style>
@@ -286,10 +277,10 @@ $result = $conn->query($query);
         <div class="sidebar">
             <h2>Admin Panel</h2>
             <ul class="nav-list">
-                <li><a href="manage_users.php" class="active">Manage Users</a></li>
+                <li><a href="#" class="active">Manage Users</a></li>
                 <li><a href="manage_services.php">Manage Services</a></li>
                 <li><a href="manage_transactions.php">Manage Transactions</a></li>
-                <li><a href="settings.php">Settings</a></li>
+                <li><a href="#">Settings</a></li>
             </ul>
         </div>
 
@@ -300,13 +291,13 @@ $result = $conn->query($query);
                 <a href="logout.php" class="logout-link">Logout</a>
             </div>
 
-            <?php if (!empty($message)) { ?>
-                <div class="message-box success"><?php echo $message; ?></div>
-            <?php } ?>
-
             <div class="content-card">
-                <?php if ($result->num_rows > 0) { ?>
-                    <table class="user-table">
+                <h3>User List</h3>
+                <?php if (!empty($message)) { ?>
+                    <div class="message-box"><?php echo $message; ?></div>
+                <?php } ?>
+                <div class="table-responsive">
+                    <table class="data-table">
                         <thead>
                             <tr>
                                 <th>ID</th>
@@ -317,23 +308,27 @@ $result = $conn->query($query);
                             </tr>
                         </thead>
                         <tbody>
-                            <?php while($user = $result->fetch_assoc()) { ?>
+                            <?php if ($result->num_rows > 0) {
+                                while($user = $result->fetch_assoc()) { ?>
                                 <tr>
                                     <td data-label="ID"><?php echo htmlspecialchars($user['id']); ?></td>
                                     <td data-label="Full Name"><?php echo htmlspecialchars($user['full_name']); ?></td>
                                     <td data-label="Email"><?php echo htmlspecialchars($user['email']); ?></td>
                                     <td data-label="Member Since"><?php echo htmlspecialchars(date("M d, Y", strtotime($user['created_at']))); ?></td>
                                     <td data-label="Actions">
-                                        <a href="view_user.php?id=<?php echo htmlspecialchars($user['id']); ?>">View</a> |
-                                        <a href="manage_users.php?delete_id=<?php echo htmlspecialchars($user['id']); ?>" onclick="return confirm('WARNING: Are you sure you want to delete this user? This action cannot be undone.');">Delete</a>
+                                        <a href="view_user.php?id=<?php echo htmlspecialchars($user['id']); ?>" class="btn btn-view">View</a>
+                                        <a href="manage_users.php?delete_id=<?php echo htmlspecialchars($user['id']); ?>" class="btn btn-danger" onclick="return confirm('WARNING: Are you sure you want to delete this user? This action cannot be undone.');">Delete</a>
                                     </td>
+                                </tr>
+                            <?php }
+                            } else { ?>
+                                <tr>
+                                    <td colspan="5" style="text-align: center; color: var(--secondary-dark);">No users found.</td>
                                 </tr>
                             <?php } ?>
                         </tbody>
                     </table>
-                <?php } else { ?>
-                    <p style="text-align: center; color: var(--secondary-dark);">No users found.</p>
-                <?php } ?>
+                </div>
             </div>
         </div>
     </div>
