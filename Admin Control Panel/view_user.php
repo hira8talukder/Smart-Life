@@ -240,7 +240,7 @@ if (!$user) {
                 <li><a href="manage_users.php" class="active">Manage Users</a></li>
                 <li><a href="manage_services.php">Manage Services</a></li>
                 <li><a href="manage_transactions.php">Manage Transactions</a></li>
-                <li><a href="settings.php">Settings</a></li>
+                
             </ul>
         </div>
 

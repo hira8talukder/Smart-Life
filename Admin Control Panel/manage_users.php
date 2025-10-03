@@ -280,7 +280,7 @@ $result = $conn->query($query);
                 <li><a href="#" class="active">Manage Users</a></li>
                 <li><a href="manage_services.php">Manage Services</a></li>
                 <li><a href="manage_transactions.php">Manage Transactions</a></li>
-                <li><a href="#">Settings</a></li>
+                
             </ul>
         </div>
 

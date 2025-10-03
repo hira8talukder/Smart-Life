@@ -90,7 +90,7 @@ $conn->close();
         }
 
         .sidebar {
-            width: 16rem;
+            width: 23rem;
             background-color: var(--card-bg);
             padding: 2.5rem 1.5rem;
             display: flex;
