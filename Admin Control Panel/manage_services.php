@@ -14,10 +14,11 @@ $message = '';
 if (isset($_POST['add_service'])) {
     $service_name = $_POST['service_name'];
     $service_description = $_POST['service_description'];
+    $service_price = $_POST['service_price'];
     
-    // Securely insert the new service with name and description
-    $stmt = $conn->prepare("INSERT INTO services (name, description) VALUES (?, ?)");
-    $stmt->bind_param("ss", $service_name, $service_description);
+    // Securely insert the new service with name, description, and price
+    $stmt = $conn->prepare("INSERT INTO services (name, description, price) VALUES (?, ?, ?)");
+    $stmt->bind_param("ssd", $service_name, $service_description, $service_price);
 
     if ($stmt->execute()) {
         $message = 'success';
@@ -367,6 +368,10 @@ $conn->close();
                         <label for="service_description">Description</label>
                         <textarea id="service_description" name="service_description" rows="3" required></textarea>
                     </div>
+                    <div class="form-group">
+                        <label for="service_price">Price (BDT)</label>
+                        <input type="number" step="0.01" id="service_price" name="service_price" required>
+                    </div>
                     <div class="form-actions">
                         <button type="submit" name="add_service" class="btn btn-primary">Add Service</button>
                     </div>
@@ -384,6 +389,7 @@ $conn->close();
                                     <th>ID</th>
                                     <th>Service Name</th>
                                     <th>Description</th>
+                                    <th>Price (BDT)</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -393,7 +399,9 @@ $conn->close();
                                         <td><?php echo htmlspecialchars($service['id']); ?></td>
                                         <td><?php echo htmlspecialchars($service['name']); ?></td>
                                         <td><?php echo htmlspecialchars($service['description']); ?></td>
+                                        <td><?php echo number_format(htmlspecialchars($service['price']), 2); ?></td>
                                         <td>
+                                            <a href="edit_service.php?id=<?php echo htmlspecialchars($service['id']); ?>" class="btn btn-secondary">Edit</a>
                                             <a href="manage_services.php?delete=<?php echo htmlspecialchars($service['id']); ?>" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this service?');">Delete</a>
                                         </td>
                                     </tr>

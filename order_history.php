@@ -44,6 +44,7 @@ include 'header.php';
                     <th>Service Name</th>
                     <th>Order Date</th>
                     <th>Status</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
@@ -54,11 +55,28 @@ include 'header.php';
                             <td><?php echo $row['name']; ?></td>
                             <td><?php echo $row['order_date']; ?></td>
                             <td><?php echo $row['status']; ?></td>
+                            <td>
+                                <?php 
+                                if ($row['status'] == 'Delivered') {
+                                    // Check if a review has already been submitted
+                                    $review_sql = "SELECT id FROM reviews WHERE order_id = ?";
+                                    $review_stmt = $conn->prepare($review_sql);
+                                    $review_stmt->bind_param("i", $row['id']);
+                                    $review_stmt->execute();
+                                    $review_result = $review_stmt->get_result();
+                                    if ($review_result->num_rows == 0) {
+                                        echo '<a href="submit_review.php?order_id=' . $row['id'] . '">Rate & Review</a>';
+                                    } else {
+                                        echo 'Reviewed';
+                                    }
+                                }
+                                ?>
+                            </td>
                         </tr>
                     <?php endwhile; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="4">No orders found.</td>
+                        <td colspan="5">No orders found.</td>
                     </tr>
                 <?php endif; ?>
             </tbody>

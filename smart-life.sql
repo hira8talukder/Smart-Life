@@ -68,20 +68,21 @@ ALTER TABLE `users`
 CREATE TABLE `services` (
   `id` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
-  `description` text NOT NULL
+  `description` text NOT NULL,
+  `price` decimal(10,2) NOT NULL DEFAULT 0.00
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `services`
 --
 
-INSERT INTO `services` (`id`, `name`, `description`) VALUES
-(1, 'Home Cleaning', 'Professional cleaning services for your home.'),
-(2, 'Plumber', 'Expert plumbing services at your doorstep.'),
-(3, 'Electrician', 'Certified electricians for all your electrical needs.'),
-(4, 'Gas Delivery', 'Fast and reliable gas cylinder delivery.'),
-(5, 'Medicine Delivery', 'Get your medicines delivered to your home.'),
-(6, 'Daily News', 'Stay updated with the latest news.');
+INSERT INTO `services` (`id`, `name`, `description`, `price`) VALUES
+(1, 'Home Cleaning', 'Professional cleaning services for your home.', 1000.00),
+(2, 'Plumber', 'Expert plumbing services at your doorstep.', 500.00),
+(3, 'Electrician', 'Certified electricians for all your electrical needs.', 600.00),
+(4, 'Gas Delivery', 'Fast and reliable gas cylinder delivery.', 1200.00),
+(5, 'Medicine Delivery', 'Get your medicines delivered to your home.', 150.00),
+(6, 'Daily News', 'Stay updated with the latest news.', 0.00);
 
 --
 -- Table structure for table `orders`
@@ -192,6 +193,43 @@ ALTER TABLE `contact_messages`
 --
 ALTER TABLE `contact_messages`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- Table structure for table `reviews`
+--
+
+CREATE TABLE `reviews` (
+  `id` int(11) NOT NULL,
+  `order_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `service_id` int(11) NOT NULL,
+  `rating` int(1) NOT NULL,
+  `review_text` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Indexes for table `reviews`
+--
+ALTER TABLE `reviews`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `order_id` (`order_id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `service_id` (`service_id`);
+
+--
+-- AUTO_INCREMENT for table `reviews`
+--
+ALTER TABLE `reviews`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- Constraints for table `reviews`
+--
+ALTER TABLE `reviews`
+  ADD CONSTRAINT `reviews_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`),
+  ADD CONSTRAINT `reviews_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
+  ADD CONSTRAINT `reviews_ibfk_3` FOREIGN KEY (`service_id`) REFERENCES `services` (`id`);
 
 COMMIT;
 
