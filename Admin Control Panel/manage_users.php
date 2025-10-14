@@ -42,18 +42,18 @@ if (!empty($search_term)) {
     
     switch ($search_by) {
         case 'id':
-            // Exact ID Match: ID = 3
+            
             $field_name = 'id';
             $operator = '=';
             break;
         case 'email':
-            // Exact Email Match: email = 'test@example.com'
+            
             $field_name = 'email';
             $operator = '=';
             break;
         case 'full_name':
         default:
-            // Fuzzy Name Match: full_name LIKE '%john%'
+            
             $field_name = 'full_name';
             $operator = 'LIKE';
             $bind_value = "%" . $search_term . "%";
@@ -123,6 +123,13 @@ $result = $stmt->get_result();
             display: flex;
             flex-direction: column;
             border-right: 1px solid var(--border-color);
+        }
+
+         .sidebar h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            color: var(--primary-blue);
         }
 
         .logo {
@@ -400,7 +407,8 @@ $result = $stmt->get_result();
         <!-- Sidebar Navigation -->
         <div class="sidebar">
             
-            <a href="manage_users.php" class="logo">Smart-Life</a> 
+            <a href="manage_users.php" class="logo">Smart-Life</a>
+            <h2>Admin Panel</h2> 
             <ul class="nav-list">
                 <li><a href="#" class="active">Manage Users</a></li>
                 <li><a href="manage_services.php">Manage Services</a></li>
