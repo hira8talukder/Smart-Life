@@ -18,7 +18,7 @@ function get_user_id_from_token($token, $secret = 'secret') {
 $user_id = get_user_id_from_token($_SESSION['user_token']);
 
 // Fetch user's orders
-$sql = "SELECT orders.id, services.name, orders.order_date, orders.status 
+$sql = "SELECT orders.orders_id, services.name, orders.order_date, orders.status 
         FROM orders 
         JOIN services ON orders.service_id = services.id 
         WHERE orders.user_id = ? 
@@ -50,7 +50,7 @@ include 'header.php';
                 <?php if ($result->num_rows > 0): ?>
                     <?php while($row = $result->fetch_assoc()): ?>
                         <tr>
-                            <td><?php echo $row['id']; ?></td>
+                            <td><?php echo $row['orders_id']; ?></td>
                             <td><?php echo $row['name']; ?></td>
                             <td><?php echo $row['order_date']; ?></td>
                             <td><?php echo $row['status']; ?></td>
