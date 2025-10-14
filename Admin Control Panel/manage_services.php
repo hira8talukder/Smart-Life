@@ -333,7 +333,7 @@ $conn->close();
                 <li><a href="manage_users.php">Manage Users</a></li>
                 <li><a href="manage_services.php" class="active">Manage Services</a></li>
                 <li><a href="manage_transactions.php">Manage Transactions</a></li>
-                <li><a href="settings.php">Settings</a></li>
+                
             </ul>
         </div>
 

@@ -8,7 +8,7 @@ if (!isset($_SESSION['admin_logged_in'])) {
     exit();
 }
 
-// handle user deletion if delete_id is provided
+// --- 1. Handle User Deletion ---
 $message = '';
 if (isset($_GET['delete_id'])) {
     $delete_id = $_GET['delete_id'];
@@ -25,9 +25,60 @@ if (isset($_GET['delete_id'])) {
     $stmt->close();
 }
 
-// fetch all users from the users table using a prepared statement for security
-$query = "SELECT id, full_name, email, created_at FROM users ORDER BY created_at DESC";
-$result = $conn->query($query);
+// --- 2. Handle Search Query (NEW EXPLICIT LOGIC) ---
+$search_term = trim($_GET['search'] ?? '');
+$search_by = $_GET['search_by'] ?? 'full_name'; // Default to fuzzy name search
+
+// Base SQL query
+$query = "SELECT id, full_name, email, created_at FROM users";
+$params = [];
+$types = '';
+
+if (!empty($search_term)) {
+    // Determine the field and operator based on search_by selection
+    $field_name = '';
+    $operator = '';
+    $bind_value = $search_term;
+    
+    switch ($search_by) {
+        case 'id':
+            // Exact ID Match: ID = 3
+            $field_name = 'id';
+            $operator = '=';
+            break;
+        case 'email':
+            // Exact Email Match: email = 'test@example.com'
+            $field_name = 'email';
+            $operator = '=';
+            break;
+        case 'full_name':
+        default:
+            // Fuzzy Name Match: full_name LIKE '%john%'
+            $field_name = 'full_name';
+            $operator = 'LIKE';
+            $bind_value = "%" . $search_term . "%";
+            break;
+    }
+
+    // Construct the WHERE clause with the selected criteria
+    $query .= " WHERE $field_name $operator ?";
+    $params[] = &$bind_value;
+    $types = 's'; 
+}
+
+$query .= " ORDER BY created_at DESC";
+
+// Prepare the statement
+$stmt = $conn->prepare($query);
+
+// Bind parameters if search term is present
+if (!empty($search_term)) {
+    // Use call_user_func_array to bind the single parameter dynamically
+    call_user_func_array([$stmt, 'bind_param'], array_merge([$types], $params));
+}
+
+$stmt->execute();
+$result = $stmt->get_result();
 ?>
 
 <!DOCTYPE html>
@@ -41,12 +92,14 @@ $result = $conn->query($query);
 
         :root {
             --primary-blue: #0A72B8;
+            --primary-orange: #FF8C00; 
             --primary-dark: #1F2937;
             --secondary-dark: #4B5563;
             --background-light: #F8F9FA;
             --card-bg: #FFFFFF;
             --link-hover-bg: #F3F4F6;
             --link-active-bg: #E5E7EB;
+            --border-color: #E5E7EB;
         }
 
         body {
@@ -69,16 +122,25 @@ $result = $conn->query($query);
             padding: 2.5rem 1.5rem;
             display: flex;
             flex-direction: column;
-            border-right: 1px solid #E5E7EB;
+            border-right: 1px solid var(--border-color);
         }
 
-        .sidebar h2 {
+        .logo {
             font-size: 1.5rem;
-            font-weight: 600;
+            font-weight: 700;
             margin-bottom: 2rem;
-            color: var(--primary-blue);
+            color: var(--primary-orange); 
+            text-decoration: none; 
+            display: block; 
+            transition: color 0.3s;
         }
 
+        .logo:hover {
+            color: var(--secondary-dark);
+        }
+
+   
+        
         .nav-list {
             list-style: none;
             padding: 0;
@@ -165,6 +227,72 @@ $result = $conn->query($query);
             background-color: #D1FAE5;
         }
 
+        /* Search Form Styling */
+        .search-form {
+            display: flex;
+            flex-direction: column; /* Stack on mobile */
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .search-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .search-form .search-select {
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            background-color: white;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        .search-form input[type="text"] {
+            flex-grow: 1;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .search-form input[type="text"]:focus, .search-form .search-select:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+        }
+
+        .search-form button {
+            background-color: var(--primary-blue);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        .search-form button:hover {
+            background-color: #085A8A;
+            transform: translateY(-1px);
+        }
+
+        /* Desktop layout for search */
+        @media (min-width: 640px) {
+            .search-form {
+                flex-direction: row;
+            }
+            .search-controls {
+                flex-grow: 1;
+            }
+            .search-form .search-select {
+                flex-shrink: 0;
+            }
+        }
+
         /* Responsive table styles */
         .table-responsive {
             overflow-x: auto;
@@ -193,12 +321,6 @@ $result = $conn->query($query);
             background-color: var(--link-hover-bg);
         }
 
-        .data-table td a {
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.3s;
-        }
-        
         /* Button styles */
         .btn {
             display: inline-block;
@@ -207,6 +329,7 @@ $result = $conn->query($query);
             border-radius: 0.5rem;
             font-weight: 500;
             text-align: center;
+            text-decoration: none;
             transition: transform 0.3s, box-shadow 0.3s, background-color 0.3s;
         }
 
@@ -255,6 +378,7 @@ $result = $conn->query($query);
                 text-align: right;
                 padding-left: 50%;
                 position: relative;
+                border-bottom: none;
             }
 
             .data-table td::before {
@@ -275,12 +399,12 @@ $result = $conn->query($query);
     <div class="dashboard-container">
         <!-- Sidebar Navigation -->
         <div class="sidebar">
-            <h2>Admin Panel</h2>
+            
+            <a href="manage_users.php" class="logo">Smart-Life</a> 
             <ul class="nav-list">
                 <li><a href="#" class="active">Manage Users</a></li>
                 <li><a href="manage_services.php">Manage Services</a></li>
                 <li><a href="manage_transactions.php">Manage Transactions</a></li>
-                
             </ul>
         </div>
 
@@ -296,6 +420,28 @@ $result = $conn->query($query);
                 <?php if (!empty($message)) { ?>
                     <div class="message-box"><?php echo $message; ?></div>
                 <?php } ?>
+
+                <!-- Search Form with Dropdown -->
+                <form method="GET" class="search-form">
+                    <div class="search-controls">
+                        <select name="search_by" class="search-select">
+                            <option value="id" <?php if ($search_by == 'id') echo 'selected'; ?>>ID</option>
+                            <option value="email" <?php if ($search_by == 'email') echo 'selected'; ?>>Email</option>
+                            <option value="full_name" <?php if ($search_by == 'full_name') echo 'selected'; ?>>Name</option>
+                        </select>
+                        <input 
+                            type="text" 
+                            name="search" 
+                            placeholder="Enter search term..." 
+                            value="<?php echo htmlspecialchars($search_term); ?>"
+                        >
+                    </div>
+                    <button type="submit">Search</button>
+                    <?php if (!empty($search_term)) { ?>
+                        <a href="manage_users.php" class="btn btn-view" style="background-color: #6B7280;">Clear</a>
+                    <?php } ?>
+                </form>
+
                 <div class="table-responsive">
                     <table class="data-table">
                         <thead>
@@ -323,7 +469,13 @@ $result = $conn->query($query);
                             <?php }
                             } else { ?>
                                 <tr>
-                                    <td colspan="5" style="text-align: center; color: var(--secondary-dark);">No users found.</td>
+                                    <td colspan="5" style="text-align: center; color: var(--secondary-dark);">
+                                        <?php if (!empty($search_term)) { ?>
+                                            No users found matching your search criteria.
+                                        <?php } else { ?>
+                                            No users found.
+                                        <?php } ?>
+                                    </td>
                                 </tr>
                             <?php } ?>
                         </tbody>
