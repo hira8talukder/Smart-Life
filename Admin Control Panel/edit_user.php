@@ -322,7 +322,7 @@ $conn->close();
     <div class="dashboard-container">
         <!-- Sidebar Navigation -->
         <div class="sidebar">
-            <a href="manage_users.php" class="logo">Smart-Life</a>
+            <a href="dashboard.php" class="logo">Smart-Life</a>
             <h2>Admin Panel</h2>
             <ul class="nav-list">
                 <li><a href="manage_users.php" class="active">Manage Users</a></li>

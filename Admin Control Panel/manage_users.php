@@ -8,7 +8,7 @@ if (!isset($_SESSION['admin_logged_in'])) {
     exit();
 }
 
-// --- 1. Handle User Deletion ---
+// Handle User Deletion ---
 $message = '';
 if (isset($_GET['delete_id'])) {
     $delete_id = $_GET['delete_id'];
@@ -25,7 +25,7 @@ if (isset($_GET['delete_id'])) {
     $stmt->close();
 }
 
-// --- 2. Handle Search Query (NEW EXPLICIT LOGIC) ---
+// Handle Search Query (NEW EXPLICIT LOGIC) ---
 $search_term = trim($_GET['search'] ?? '');
 $search_by = $_GET['search_by'] ?? 'full_name'; // Default to fuzzy name search
 
@@ -407,7 +407,7 @@ $result = $stmt->get_result();
         <!-- Sidebar Navigation -->
         <div class="sidebar">
             
-            <a href="manage_users.php" class="logo">Smart-Life</a>
+            <a href="dashboard.php" class="logo">Smart-Life</a>
             <h2>Admin Panel</h2> 
             <ul class="nav-list">
                 <li><a href="#" class="active">Manage Users</a></li>

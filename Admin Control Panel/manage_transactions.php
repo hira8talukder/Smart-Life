@@ -8,6 +8,23 @@ if (!isset($_SESSION['admin_logged_in'])) {
     exit();
 }
 
+// Initialize search variables
+$search_term = '';
+$search_where = '';
+
+// Check if a search term was submitted
+if (isset($_GET['search']) && !empty(trim($_GET['search']))) {
+    $search_term = trim($_GET['search']);
+    // Sanitize and create the WHERE clause
+    // We search in orders_id (cast to string for LIKE comparison) and user email
+    $search_where = $conn->real_escape_string($search_term);
+    $search_where = "
+        WHERE 
+            o.orders_id LIKE '%{$search_where}%' 
+            OR u.email LIKE '%{$search_where}%'
+    ";
+}
+
 // Fetch all orders, joining with users AND services to display customer and service names
 $query = "
     SELECT 
@@ -24,6 +41,7 @@ $query = "
         users u ON o.user_id = u.id
     JOIN
         services s ON o.service_id = s.id /* ADDED: Join services table on service_id */
+    {$search_where} /* ADDED: Apply search filter */
     ORDER BY 
         o.order_date DESC
 "; 
@@ -177,6 +195,44 @@ $message = '';
             border-bottom: 1px solid var(--border-color);
             padding-bottom: 0.5rem;
         }
+        
+        /* Search Bar Styles */
+        .search-container {
+            margin-bottom: 1.5rem;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .search-container input[type="text"] {
+            flex-grow: 1;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .search-container input[type="text"]:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(10, 114, 184, 0.2);
+        }
+
+        .search-container button {
+            padding: 0.75rem 1.5rem;
+            background-color: var(--primary-blue);
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        .search-container button:hover {
+            background-color: #085A8A;
+            transform: translateY(-1px);
+        }
 
         /* Table Styles */
         .order-table-wrapper {
@@ -289,14 +345,17 @@ $message = '';
             .order-table td:last-child {
                 border-bottom: none;
             }
+
+            .search-container {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
     <div class="dashboard-container">
-        <!-- Sidebar Navigation -->
         <div class="sidebar">
-            <a href="manage_users.php" class="logo">Smart-Life</a>
+            <a href="dashboard.php" class="logo">Smart-Life</a>
             <h2>Admin Panel</h2> 
             <ul class="nav-list">
                 <li><a href="manage_users.php">Manage Users</a></li>
@@ -305,7 +364,6 @@ $message = '';
             </ul>
         </div>
 
-        <!-- Main Content Area -->
         <div class="main-content">
             <div class="header">
                 <h1>Manage Orders</h1>
@@ -315,6 +373,19 @@ $message = '';
             <div class="content-card">
                 <h3>All Orders</h3>
                 
+                <form method="GET" action="manage_transactions.php" class="search-container">
+                    <input 
+                        type="text" 
+                        name="search" 
+                        placeholder="Search by Order ID or Customer Email..." 
+                        value="<?php echo htmlspecialchars($search_term); ?>"
+                    >
+                    <button type="submit">Search</button>
+                    <?php if (!empty($search_term)): ?>
+                        <a href="manage_transactions.php" class="btn" style="background-color: #6B7280; color: white;">Clear</a>
+                    <?php endif; ?>
+                </form>
+                
                 <div class="order-table-wrapper">
                     <?php if ($result && $result->num_rows > 0) { ?>
                         <table class="order-table">
@@ -322,7 +393,7 @@ $message = '';
                                 <tr>
                                     <th>Order ID</th>
                                     <th>Customer Name</th>
-                                    <th>Service Name</th> <!-- ADDED: Service Name Header -->
+                                    <th>Customer Email</th> <th>Service Name</th> 
                                     <th>Total Amount</th>
                                     <th>Status</th>
                                     <th>Order Date</th>
@@ -345,15 +416,20 @@ $message = '';
                                         case 'Cancelled':
                                             $status_class = 'status-cancelled';
                                             break;
+                                        case 'Shipped': // Added Shipped status based on database
+                                            $status_class = 'status-processing'; 
+                                            break;
                                         default:
                                             $status_class = 'status-pending';
                                     }
+                                    // Handle NULL total_amount gracefully
+                                    $display_amount = is_null($order['total_amount']) ? 'N/A' : '$' . htmlspecialchars(number_format($order['total_amount'], 2));
                                 ?>
                                 <tr>
                                     <td data-label="Order ID"><?php echo htmlspecialchars($order['orders_id']); ?></td>
                                     <td data-label="Customer Name"><?php echo htmlspecialchars($order['full_name']); ?></td>
-                                    <td data-label="Service Name"><?php echo htmlspecialchars($order['service_name']); ?></td> <!-- ADDED: Service Name Data -->
-                                    <td data-label="Total Amount">$<?php echo htmlspecialchars(number_format($order['total_amount'], 2)); ?></td>
+                                    <td data-label="Customer Email"><?php echo htmlspecialchars($order['email']); ?></td> <td data-label="Service Name"><?php echo htmlspecialchars($order['service_name']); ?></td> 
+                                    <td data-label="Total Amount"><?php echo $display_amount; ?></td>
                                     <td data-label="Status">
                                         <span class="status-badge <?php echo $status_class; ?>">
                                             <?php echo htmlspecialchars($order['status']); ?>
@@ -362,16 +438,17 @@ $message = '';
                                     <td data-label="Order Date"><?php echo htmlspecialchars(date("M d, Y H:i", strtotime($order['order_date']))); ?></td>
                                     <td data-label="Actions">
                                         <a href="view_order.php?id=<?php echo htmlspecialchars($order['orders_id']); ?>" class="btn btn-view">View Details</a>
+
                                     </td>
-                                </tr>
-                            <?php }
-                            } else { ?>
-                                <tr>
-                                    <td colspan="7" style="text-align: center; color: var(--secondary-dark);">No orders found.</td>
                                 </tr>
                             <?php } ?>
                         </tbody>
                     </table>
+                <?php } else { ?>
+                    <p style="text-align: center; color: var(--secondary-dark); padding: 20px;">
+                        <?php echo empty($search_term) ? "No orders found." : "No orders found matching the search term '<strong>" . htmlspecialchars($search_term) . "</strong>'."; ?>
+                    </p>
+                <?php } ?>
                 </div>
             </div>
         </div>
