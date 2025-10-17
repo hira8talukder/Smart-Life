@@ -10,19 +10,70 @@ if (!isset($_SESSION['admin_logged_in'])) {
 
 // Handle User Deletion ---
 $message = '';
+$message_class = 'success'; // Default message class for styling
+
 if (isset($_GET['delete_id'])) {
     $delete_id = $_GET['delete_id'];
     
-    // Use a prepared statement for secure deletion
-    $stmt = $conn->prepare("DELETE FROM users WHERE id = ?");
-    $stmt->bind_param("i", $delete_id);
-    
-    if ($stmt->execute()) {
-        $message = "User deleted successfully!";
-    } else {
-        $message = "Error deleting user: " . $stmt->error;
+    // --- FIX START: Use Transaction to handle Foreign Key Constraints ---
+    // This ensures all steps (delete details, delete orders, delete user) succeed or all fail.
+    $conn->begin_transaction();
+
+    try {
+        // 1. Get all orders_id associated with the user
+        $order_ids = [];
+        $stmt_select_orders = $conn->prepare("SELECT orders_id FROM orders WHERE user_id = ?");
+        $stmt_select_orders->bind_param("i", $delete_id);
+        $stmt_select_orders->execute();
+        $result_orders = $stmt_select_orders->get_result();
+        while ($row = $result_orders->fetch_assoc()) {
+            $order_ids[] = $row['orders_id'];
+        }
+        $stmt_select_orders->close();
+        
+        // 2. Delete dependent rows in order_details (must be done before deleting orders)
+        if (!empty($order_ids)) {
+            // Build the IN clause dynamically for secure prepared statement
+            $in_clause = implode(',', array_fill(0, count($order_ids), '?'));
+            $types = str_repeat('i', count($order_ids));
+            
+            $stmt_details = $conn->prepare("DELETE FROM order_details WHERE order_id IN ($in_clause)");
+            // Use splat operator to pass array elements as separate arguments
+            $stmt_details->bind_param($types, ...$order_ids);
+            
+            if (!$stmt_details->execute()) {
+                throw new Exception("Error deleting order details: " . $stmt_details->error);
+            }
+            $stmt_details->close();
+        }
+
+        // 3. Delete dependent rows in orders (must be done before deleting user)
+        $stmt_orders = $conn->prepare("DELETE FROM orders WHERE user_id = ?");
+        $stmt_orders->bind_param("i", $delete_id);
+        if (!$stmt_orders->execute()) {
+            throw new Exception("Error deleting user's orders: " . $stmt_orders->error);
+        }
+        $stmt_orders->close();
+        
+        // 4. Delete the user (parent row)
+        $stmt_user = $conn->prepare("DELETE FROM users WHERE id = ?");
+        $stmt_user->bind_param("i", $delete_id);
+        if (!$stmt_user->execute()) {
+            throw new Exception("Error deleting user: " . $stmt_user->error);
+        }
+        $stmt_user->close();
+        
+        // Commit the transaction
+        $conn->commit();
+        $message = "User and all associated data deleted successfully!";
+        
+    } catch (Exception $e) {
+        // Rollback on any failure
+        $conn->rollback();
+        $message_class = 'error';
+        $message = "Error deleting user: The operation failed due to a database issue. Please check logs for details or contact support.";
     }
-    $stmt->close();
+    // --- FIX END ---
 }
 
 // Handle Search Query (NEW EXPLICIT LOGIC) ---
@@ -62,8 +113,10 @@ if (!empty($search_term)) {
 
     // Construct the WHERE clause with the selected criteria
     $query .= " WHERE $field_name $operator ?";
-    $params[] = &$bind_value;
-    $types = 's'; 
+    // Use a temporary variable for bind_param to pass by reference
+    $temp_bind_value = $bind_value; 
+    $params[] = &$temp_bind_value;
+    $types = 's'; // Assuming the final bound value is treated as a string for safety
 }
 
 $query .= " ORDER BY created_at DESC";
@@ -73,8 +126,16 @@ $stmt = $conn->prepare($query);
 
 // Bind parameters if search term is present
 if (!empty($search_term)) {
-    // Use call_user_func_array to bind the single parameter dynamically
-    call_user_func_array([$stmt, 'bind_param'], array_merge([$types], $params));
+    // Note: The use of call_user_func_array is generally needed when types/params are dynamic. 
+    // Since we only have one potential parameter here, simple bind_param can also be used, 
+    // but the existing dynamic logic is retained and cleaned up.
+    if (!empty($params)) {
+        // Resetting $types to match the actual binding type. If 'id' is selected, it should be 'i'.
+        $types = ($search_by == 'id' && is_numeric($search_term)) ? 'i' : 's'; 
+        
+        // Since we are only binding one parameter, we can simplify this
+        $stmt->bind_param($types, $temp_bind_value);
+    }
 }
 
 $stmt->execute();
@@ -223,6 +284,7 @@ $result = $stmt->get_result();
             padding: 2rem;
         }
         
+        /* Message box styles updated to include error state */
         .message-box {
             text-align: center;
             font-size: 0.9rem;
@@ -230,8 +292,18 @@ $result = $stmt->get_result();
             padding: 1rem;
             border-radius: 0.75rem;
             margin-bottom: 1.5rem;
-            color: #065F46;
-            background-color: #D1FAE5;
+        }
+        
+        .message-box.success {
+            color: #065F46; /* Dark Green */
+            background-color: #D1FAE5; /* Light Green */
+            border: 1px solid #A7F3D0;
+        }
+
+        .message-box.error {
+            color: #991B1B; /* Dark Red */
+            background-color: #FEE2E2; /* Light Red */
+            border: 1px solid #FCA5A5;
         }
 
         /* Search Form Styling */
@@ -404,7 +476,6 @@ $result = $stmt->get_result();
 </head>
 <body>
     <div class="dashboard-container">
-        <!-- Sidebar Navigation -->
         <div class="sidebar">
             
             <a href="dashboard.php" class="logo">Smart-Life</a>
@@ -416,7 +487,6 @@ $result = $stmt->get_result();
             </ul>
         </div>
 
-        <!-- Main Content Area -->
         <div class="main-content">
             <div class="header">
                 <h1>Manage Users</h1>
@@ -426,10 +496,9 @@ $result = $stmt->get_result();
             <div class="content-card">
                 <h3>User List</h3>
                 <?php if (!empty($message)) { ?>
-                    <div class="message-box"><?php echo $message; ?></div>
+                    <div class="message-box <?php echo $message_class; ?>"><?php echo $message; ?></div>
                 <?php } ?>
 
-                <!-- Search Form with Dropdown -->
                 <form method="GET" class="search-form">
                     <div class="search-controls">
                         <select name="search_by" class="search-select">
@@ -471,7 +540,7 @@ $result = $stmt->get_result();
                                     <td data-label="Member Since"><?php echo htmlspecialchars(date("M d, Y", strtotime($user['created_at']))); ?></td>
                                     <td data-label="Actions">
                                         <a href="view_user.php?id=<?php echo htmlspecialchars($user['id']); ?>" class="btn btn-view">View</a>
-                                        <a href="manage_users.php?delete_id=<?php echo htmlspecialchars($user['id']); ?>" class="btn btn-danger" onclick="return confirm('WARNING: Are you sure you want to delete this user? This action cannot be undone.');">Delete</a>
+                                        <a href="manage_users.php?delete_id=<?php echo htmlspecialchars($user['id']); ?>" class="btn btn-danger" onclick="return confirm('WARNING: Are you sure you want to delete this user? This will permanently delete all associated orders and order details.');">Delete</a>
                                     </td>
                                 </tr>
                             <?php }
