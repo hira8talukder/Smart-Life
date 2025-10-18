@@ -81,6 +81,20 @@ if (!$user) {
             color: var(--primary-blue);
         }
 
+         .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            color: orange; 
+            text-decoration: none; 
+            display: block; 
+            transition: color 0.3s;
+        }
+
+        .logo:hover {
+            color: var(--secondary-dark);
+        }
+
         .nav-list {
             list-style: none;
             padding: 0;
@@ -235,6 +249,7 @@ if (!$user) {
     <div class="dashboard-container">
         <!-- Sidebar Navigation -->
         <div class="sidebar">
+            <a href="dashboard.php" class="logo">Smart-Life</a>
             <h2>Admin Panel</h2>
             <ul class="nav-list">
                 <li><a href="manage_users.php" class="active">Manage Users</a></li>

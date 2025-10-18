@@ -155,6 +155,20 @@ if ($order) {
             margin-bottom: 2rem;
             color: var(--primary-blue);
         }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            color: orange; 
+            text-decoration: none; 
+            display: block; 
+            transition: color 0.3s;
+        }
+
+        .logo:hover {
+            color: var(--secondary-dark);
+        }
 
         .nav-list {
             list-style: none;
@@ -407,6 +421,7 @@ if ($order) {
     <div class="dashboard-container">
         <!-- Sidebar Navigation -->
         <div class="sidebar">
+            <a href="dashboard.php" class="logo">Smart-Life</a>
             <h2>Admin Panel</h2>
             <ul class="nav-list">
                 <li><a href="manage_users.php">Manage Users</a></li>
@@ -519,56 +534,7 @@ if ($order) {
                 </div>
 
                 <!-- Order Items Card -->
-                <div class="content-card mt-6">
-                    <h3>Items Ordered</h3>
-                    <?php if (!empty($order_details_array)) { ?>
-                        <table class="order-items-table">
-                            <thead>
-                                <tr>
-                                    <th>Item Name</th>
-                                    <th>Quantity</th>
-                                    <th>Unit Price</th>
-                                    <th>Total Price</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php 
-                                $subtotal = 0;
-                                // Assuming $order_details_array holds line item objects/arrays
-                                foreach ($order_details_array as $item) { 
-                                    $price = $item['price'] ?? 0;
-                                    $quantity = $item['quantity'] ?? 1;
-                                    $item_total = $price * $quantity;
-                                    $subtotal += $item_total;
-                                ?>
-                                    <tr>
-                                        <td><?php echo htmlspecialchars($item['name'] ?? 'Unknown Item'); ?></td>
-                                        <td><?php echo htmlspecialchars($quantity); ?></td>
-                                        <td>$<?php echo htmlspecialchars(number_format($price, 2)); ?></td>
-                                        <td>$<?php echo htmlspecialchars(number_format($item_total, 2)); ?></td>
-                                    </tr>
-                                <?php } ?>
-                            </tbody>
-                            <tfoot>
-                                <tr>
-                                    <td colspan="3" style="text-align: right; font-size: 0.9rem;">Subtotal:</td>
-                                    <td style="font-size: 0.9rem;">$<?php echo htmlspecialchars(number_format($subtotal, 2)); ?></td>
-                                </tr>
-                                <tr>
-                                    <td colspan="3" style="text-align: right; font-size: 0.9rem;">Shipping Cost:</td>
-                                    <td style="font-size: 0.9rem;">$<?php echo htmlspecialchars(number_format($order['shipping_cost'] ?? 0, 2)); ?></td>
-                                </tr>
-                                <tr>
-                                    <td colspan="3" style="text-align: right;">Grand Total:</td>
-                                    <td style="color: var(--primary-blue);">$<?php echo htmlspecialchars(number_format($order['total_amount'], 2)); ?></td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    <?php } else { ?>
-                        <div class="message-box warning-box">No detailed line items found for this order.</div>
-                    <?php } ?>
-                </div>
-
+                
             <?php } ?>
         </div>
     </div>
